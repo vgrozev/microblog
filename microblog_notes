@@ -1,0 +1,230 @@
+https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-i-hello-world
+
+****************************************************************************************************************************************
+****************************************************************************************************************************************
+---->  1
+
+---------
+mkdir microblog
+cd microblog
+python3 -m venv venv
+source venv/bin/activate
+
+pip install --upgrade pip
+pip install flask
+---------
+
+mkdir app
+
+vim app/__init__.py
+
+	from flask import Flask
+
+	app = Flask(__name__)
+
+	from app import routes
+
+-----------
+
+vim app/routes.py
+
+	from app import app
+	
+	@app.route('/')
+	@app.route('/index')
+	def index():
+	return "Hello, World"
+
+-------------
+
+vim microblog.py
+
+	from app import app
+	
+-------------
+============
+
+microblog/
+  venv/
+  app/
+    __init__.py
+    routes.py
+  microblog.py
+
+  ============
+
+(venv) $ export FLASK_APP=microblog.py
+(venv) $ flask run
+
+-->  
+	Since environment variables aren't remembered across terminal sessions, 
+	you may find tedious to always have to set the FLASK_APP environment variable 
+	when you open a new terminal window. Starting with version 1.0, Flask allows you to register 
+	environment variables that you want to be automatically imported when you run the flask command. 
+	To use this option you have to install the python-dotenv package:
+	
+	pip install python-dotenv
+
+	vim .flaskenv
+		FLASK_APP=microblog.py
+
+****************************************************************************************************************************************
+****************************************************************************************************************************************
+---->  2
+
+-----------
+
+vim app/routes.py
+
+from app import app
+
+	@app.route('/')
+	@app.route('/index')
+	def index():
+	
+	user = {'username': 'Migel'}
+	return '''
+	
+	<html>
+		<head>
+			<title>Home Page - Microblog</title>
+		</head>
+		<body>
+			<h1>Hello, ''' + user['username'] + '''!</h1>
+		</body>
+	</html>'''
+
+-------------
+
+(venv) $ mkdir app/templates
+
+-------------
+
+app/templates/index.html
+
+<html>
+	<head>
+		<title>{{ title }} - Microblog</title>
+	</head>
+	<body>
+		<h1>Hello, {{ user.username }}!</h1>
+	</body>
+</html>
+
+-------------
+
+vim app/routes.py
+
+	from flask import render_template
+	from app import app
+
+	@app.route('/')
+	@app.route('/index')
+	def index():
+
+		user = {'username': 'Migel'}
+		return render_template('index.html', title='Home', user=user)
+
+-------------
+====================================
+app/templates/index.html: Conditional statement in template
+
+<html>
+    <head>
+        {% if title %}
+        <title>{{ title }} - Microblog</title>
+        {% else %}
+        <title>Welcome to Microblog!</title>
+        {% endif %}
+    </head>
+    <body>
+        <h1>Hello, {{ user.username }}!</h1>
+    </body>
+</html>
+====================================
+
+app/routes.py: Fake posts in view function
+
+from flask import render_template
+from app import app
+
+@app.route('/')
+@app.route('/index')
+def index():
+    user = {'username': 'Miguel'}
+    posts = [
+        {
+            'author': {'username': 'John'},
+            'body': 'Beautiful day in Portland!'
+        },
+        {
+            'author': {'username': 'Susan'},
+            'body': 'The Avengers movie was so cool!'
+        }
+    ]
+    return render_template('index.html', title='Home', user=user, posts=posts)
+    
+ ====================================  
+ app/templates/base.html: Base template with navigation bar
+
+<html>
+    <head>
+      {% if title %}
+      <title>{{ title }} - Microblog</title>
+      {% else %}
+      <title>Welcome to Microblog</title>
+      {% endif %}
+    </head>
+    <body>
+        <div>Microblog: <a href="/index">Home</a></div>
+        <hr>
+        {% block content %}{% endblock %}
+    </body>
+</html>
+
+====================================
+
+app/templates/index.html: Inherit from base template
+
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Hi, {{ user.username }}!</h1>
+    {% for post in posts %}
+    <div><p>{{ post.author.username }} says: <b>{{ post.body }}</b></p></div>
+    {% endfor %}
+{% endblock %}
+
+====================================
+
+****************************************************************************************************************************************
+****************************************************************************************************************************************
+https://flask-wtf.readthedocs.io/en/stable/
+
+---->  3
+
+-------------
+(venv) $ pip install flask-wtf
+-------------
+====================================
+config.py: Secret key configuration
+
+import os
+
+class Config(object):
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'you-will-never-guess'
+    
+====================================
+
+app/__init__.py: Flask configuration
+
+from flask import Flask
+from config import Config
+
+app = Flask(__name__)
+app.config.from_object(Config)
+
+from app import routes
+
+====================================
+
