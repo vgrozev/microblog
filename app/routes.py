@@ -16,3 +16,11 @@ def index():
         }
     ]
     return render_template('index.html', title='Home', user=user, posts=posts)
+
+# this import should be at the top under '...app import...'
+from app.forms import LoginForm
+
+@app.route('/login')
+def login():
+	form = loginForm()
+	return render_template('login.html', title='Sign In', form=form)

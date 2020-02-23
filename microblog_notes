@@ -101,6 +101,7 @@ from app import app
 -------------
 
 app/templates/index.html
+---
 
 <html>
 	<head>
@@ -128,6 +129,7 @@ vim app/routes.py
 -------------
 ====================================
 app/templates/index.html: Conditional statement in template
+---
 
 <html>
     <head>
@@ -144,6 +146,7 @@ app/templates/index.html: Conditional statement in template
 ====================================
 
 app/routes.py: Fake posts in view function
+---
 
 from flask import render_template
 from app import app
@@ -166,6 +169,7 @@ def index():
     
  ====================================  
  app/templates/base.html: Base template with navigation bar
+---
 
 <html>
     <head>
@@ -185,6 +189,7 @@ def index():
 ====================================
 
 app/templates/index.html: Inherit from base template
+---
 
 {% extends "base.html" %}
 
@@ -208,6 +213,7 @@ https://flask-wtf.readthedocs.io/en/stable/
 -------------
 ====================================
 config.py: Secret key configuration
+---
 
 import os
 
@@ -217,6 +223,7 @@ class Config(object):
 ====================================
 
 app/__init__.py: Flask configuration
+---
 
 from flask import Flask
 from config import Config
@@ -227,4 +234,61 @@ app.config.from_object(Config)
 from app import routes
 
 ====================================
+************
+# check the value of the secret key
+
+(venv) |00:29:23|vlado@vlado-mnj:[microblog]> python
+Python 3.8.1 (default, Jan 22 2020, 06:38:00)
+[GCC 9.2.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> from microblog import app
+>>> app.config['SECRET_KEY']
+'you-will-never-guess'
+>>>
+************
+
+====================================
+
+app/forms.py: Login form
+---
+
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms.validators import DataRequired
+
+class LoginForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    remember_me = BooleanField('Remember Me')
+    submit = SubmitField('Sign In')
+ 
+====================================
+
+app/templates/login.html: Login form template
+---
+
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Sign In</h1>
+    <form action="" method="post" novalidate>
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.username.label }}<br>
+            {{ form.username(size=32) }}
+        </p>
+        <p>
+            {{ form.password.label }}<br>
+            {{ form.password(size=32) }}
+        </p>
+        <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
+        <p>{{ form.submit() }}</p>
+    </form>
+{% endblock %}
+
+The form.hidden_tag() template argument generates a hidden field that includes a token 
+that is used to protect the form against CSRF attacks. All you need to do to have the form protected 
+is include this hidden field and have the SECRET_KEY variable defined in the Flask configuration. 
+If you take care of these two things, Flask-WTF does the rest for you.
+
 
